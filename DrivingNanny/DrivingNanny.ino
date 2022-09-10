@@ -5,12 +5,12 @@
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
-
 #define ADXL343_SCK 13
 #define ADXL343_MISO 12
 #define ADXL343_MOSI 11
 #define ADXL343_CS 10
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+const int buzzer = 10;
 
 /* Assign a unique ID to this sensor at the same time */
 /* Uncomment following line for default Wire bus      */
@@ -137,9 +137,8 @@ void setup(void)
   lcd.clear();
   Serial.begin(115200);
 
-  /* Delete this, we don't use pin 8 */
-  pinMode(8, INPUT);
-  digitalWrite(8, HIGH);
+  /*Setup Buzzer */
+  pinMode(buzzer, OUTPUT);
   
   pinMode(9, INPUT);
   digitalWrite(9, HIGH);
@@ -209,7 +208,9 @@ void loop(void)
      event.acceleration.z > (InitAccelZ + 9) || event.acceleration.z < (InitAccelZ - 9))
   {
     EEPROM.put(EEPROMADR, (EEPROM.get(EEPROMADR, BadDriverEvents)+1));
-    delay(250);
+    /* Buzz */
+    tone(buzzer, 2000);
+    delay(1000);
   }
 
   /* Display the results (acceleration is measured in m/s^2) */
