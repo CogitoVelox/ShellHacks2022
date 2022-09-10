@@ -189,15 +189,14 @@ void loop(void)
   
     lcd.clear();
     lcd.print("Press Start");
-    
+
+    delay(100);
     if(digitalRead(9) == LOW) {
       lcd.clear();
       isRunning = !isRunning;
     }
     
     a = millis();
-
-    delay(100);
   }
   
   /* Get a new sensor event */
@@ -257,10 +256,17 @@ void loop(void)
   Serial.println(i);
   /*Serial.println("......");*/
 
+  delay(200);
   /* Check button */
   if(digitalRead(9) == LOW) {
      isRunning = !isRunning;
+     delay(200);
+     EEPROM.put(EEPROMADR,0);
+     while(digitalRead(9) == HIGH)
+     {
+       delay(100);
+     }
   }
-  delay(100);
+
   
 }
