@@ -4,11 +4,14 @@
 #include <Adafruit_ADXL343.h>
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
+
+
 #define ADXL343_SCK 13
 #define ADXL343_MISO 12
 #define ADXL343_MOSI 11
 #define ADXL343_CS 10
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
 /* Assign a unique ID to this sensor at the same time */
 /* Uncomment following line for default Wire bus      */
 Adafruit_ADXL343 accel = Adafruit_ADXL343(12345);
@@ -33,6 +36,14 @@ int EEPROMADR = 0;
 float InitAccelX;
 float InitAccelY;
 float InitAccelZ;
+
+/* Initialize global variables for time control */
+int i = 0;
+int m=0;
+int h=0;
+double a = millis();
+double c ;
+bool isRunning = false;
 
 void displayDataRate(void)
 {
@@ -125,8 +136,11 @@ void setup(void)
   lcd.begin(16, 2);
   lcd.clear();
   Serial.begin(115200);
+
+  /* Delete this, we don't use pin 8 */
   pinMode(8, INPUT);
   digitalWrite(8, HIGH);
+  
   pinMode(9, INPUT);
   digitalWrite(9, HIGH);
 
@@ -167,23 +181,15 @@ void setup(void)
   Serial.println("");
 }
 
-int i = 0;
-int m=0;
-int h=0;
-double a = millis();
-double c ;
-bool isRunning = false;
-
-
-
 void loop(void)
 {
-  
+
+  /* While it isn't running, wait for button press on start screen */
   while (!isRunning) {
   
     lcd.clear();
     lcd.print("Press Start");
-
+    
     if(digitalRead(9) == LOW) {
       lcd.clear();
       isRunning = !isRunning;
@@ -192,16 +198,11 @@ void loop(void)
     a = millis();
 
     delay(100);
-    
-    
   }
-  
   
   /* Get a new sensor event */
   sensors_event_t event;
   accel.getEvent(&event);
-
-/**                                    **/
 
  /* Record a bad driving event */
   if(event.acceleration.x > (InitAccelX + 9) || event.acceleration.x < (InitAccelX - 9)|| 
@@ -209,6 +210,7 @@ void loop(void)
      event.acceleration.z > (InitAccelZ + 9) || event.acceleration.z < (InitAccelZ - 9))
   {
     EEPROM.put(EEPROMADR, (EEPROM.get(EEPROMADR, BadDriverEvents)+1));
+    delay(250);
   }
 
   /* Display the results (acceleration is measured in m/s^2) */
@@ -216,7 +218,8 @@ void loop(void)
   Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
   Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
   Serial.print("Num Incidents: "); Serial.print(EEPROM.get(EEPROMADR, BadDriverEvents)); Serial.print("  ");
-  
+
+  /* Calculate the time to display */
   c = millis();
   i = (c - a) / 1000;
   if(i==60){
@@ -244,6 +247,8 @@ void loop(void)
   }
   lcd.print(i);
   lcd.setCursor(0,1);
+
+  /* Print the number of infractions */
   lcd.print("Infractions:");
   lcd.print(EEPROM.get(EEPROMADR, BadDriverEvents));
   lcd.setCursor(0,0);
