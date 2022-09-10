@@ -1,15 +1,14 @@
 #include <ADXL345.h>
-
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL343.h>
 #include <EEPROM.h>
-
+#include <LiquidCrystal.h>
 #define ADXL343_SCK 13
 #define ADXL343_MISO 12
 #define ADXL343_MOSI 11
 #define ADXL343_CS 10
-
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 /* Assign a unique ID to this sensor at the same time */
 /* Uncomment following line for default Wire bus      */
 Adafruit_ADXL343 accel = Adafruit_ADXL343(12345);
@@ -123,7 +122,15 @@ void displayRange(void)
 
 void setup(void)
 {
-  Serial.begin(115200);
+  lcd.begin(16, 2);
+  lcd.clear();
+  Serial.begin(9600);
+  pinMode(8, INPUT);
+  digitalWrite(8, HIGH);
+  pinMode(9, INPUT);
+  digitalWrite(9, HIGH);
+
+  
   while (!Serial);
   Serial.println("Accelerometer Test"); Serial.println("");
 
@@ -160,26 +167,94 @@ void setup(void)
   Serial.println("");
 }
 
+int i = 0;
+int m=0;
+int h=0;
+double a = millis();
+double c ;
+
 void loop(void)
 {
+  delay(500);
+  lcd.clear();
+  lcd.print("press start");
+  
   /* Get a new sensor event */
   sensors_event_t event;
   accel.getEvent(&event);
 
-  /* Record a bad driving event */
+/**                                    **/
+if(digitalRead(8) == LOW)
+{
+ 
+lcd.clear();
+a = millis();
+while(digitalRead(9) == HIGH)
+{
+
+ /* Record a bad driving event */
   if(event.acceleration.x > (InitAccelX + 9) || event.acceleration.x < (InitAccelX - 9)|| 
      event.acceleration.y > (InitAccelY + 9) || event.acceleration.y < (InitAccelY - 9)|| 
      event.acceleration.z > (InitAccelZ + 9) || event.acceleration.z < (InitAccelZ - 9))
   {
     EEPROM.put(EEPROMADR, (EEPROM.get(EEPROMADR, BadDriverEvents)+1));
   }
-  
+
   /* Display the results (acceleration is measured in m/s^2) */
   Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
   Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
   Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
   Serial.print("Num Incidents: "); Serial.print(EEPROM.get(EEPROMADR, BadDriverEvents)); Serial.print("  ");
+ 
+  c = millis();
+  i = (c - a) / 1000;
+  if(i==60){
+    m++;
+    a=millis();  
+  }
+  if(m>=60){
+    h++;
+    m=0;
+    }
+  if(h>0){
+   if (h<10){
+    lcd.print(0);
+    } 
+    lcd.print(h);
+    lcd.print(":");
+   }
+  if (m<10){
+    lcd.print(0);
+    }
+lcd.print(m);
+lcd.print(":");
+if (i<10){
+    lcd.print(0);
+    }
+lcd.print(i);
+lcd.setCursor(0,1);
+lcd.print("Infractions:");
+lcd.setCursor(13,1);
+lcd.print(EEPROM.get(EEPROMADR, BadDriverEvents));
+lcd.setCursor(0,0);
+Serial.println(c);
+Serial.println(a);
+Serial.println(i);
+/*Serial.println("......");*/
+delay(100);
+}
+ 
+if(digitalRead(9) == LOW)
+{
+while(digitalRead(8) == HIGH)
+{
 
+delay(100);
+}
 
+}
+}
+
+/**                                                                  **/
   delay(500);
 }
