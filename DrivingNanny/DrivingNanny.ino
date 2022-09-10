@@ -124,7 +124,7 @@ void setup(void)
 {
   lcd.begin(16, 2);
   lcd.clear();
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(8, INPUT);
   digitalWrite(8, HIGH);
   pinMode(9, INPUT);
@@ -172,25 +172,36 @@ int m=0;
 int h=0;
 double a = millis();
 double c ;
+bool isRunning = false;
+
+
 
 void loop(void)
 {
-  delay(500);
-  lcd.clear();
-  lcd.print("press start");
+  
+  while (!isRunning) {
+  
+    lcd.clear();
+    lcd.print("Press Start");
+
+    if(digitalRead(9) == LOW) {
+      lcd.clear();
+      isRunning = !isRunning;
+    }
+    
+    a = millis();
+
+    delay(100);
+    
+    
+  }
+  
   
   /* Get a new sensor event */
   sensors_event_t event;
   accel.getEvent(&event);
 
 /**                                    **/
-if(digitalRead(8) == LOW)
-{
- 
-lcd.clear();
-a = millis();
-while(digitalRead(9) == HIGH)
-{
 
  /* Record a bad driving event */
   if(event.acceleration.x > (InitAccelX + 9) || event.acceleration.x < (InitAccelX - 9)|| 
@@ -205,7 +216,7 @@ while(digitalRead(9) == HIGH)
   Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
   Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
   Serial.print("Num Incidents: "); Serial.print(EEPROM.get(EEPROMADR, BadDriverEvents)); Serial.print("  ");
- 
+  
   c = millis();
   i = (c - a) / 1000;
   if(i==60){
@@ -226,35 +237,25 @@ while(digitalRead(9) == HIGH)
   if (m<10){
     lcd.print(0);
     }
-lcd.print(m);
-lcd.print(":");
-if (i<10){
-    lcd.print(0);
-    }
-lcd.print(i);
-lcd.setCursor(0,1);
-lcd.print("Infractions:");
-lcd.setCursor(13,1);
-lcd.print(EEPROM.get(EEPROMADR, BadDriverEvents));
-lcd.setCursor(0,0);
-Serial.println(c);
-Serial.println(a);
-Serial.println(i);
-/*Serial.println("......");*/
-delay(100);
-}
- 
-if(digitalRead(9) == LOW)
-{
-while(digitalRead(8) == HIGH)
-{
+  lcd.print(m);
+  lcd.print(":");
+  if (i<10){
+     lcd.print(0);
+  }
+  lcd.print(i);
+  lcd.setCursor(0,1);
+  lcd.print("Infractions:");
+  lcd.print(EEPROM.get(EEPROMADR, BadDriverEvents));
+  lcd.setCursor(0,0);
+  Serial.println(c);
+  Serial.println(a);
+  Serial.println(i);
+  /*Serial.println("......");*/
 
-delay(100);
-}
-
-}
-}
-
-/**                                                                  **/
-  delay(500);
+  /* Check button */
+  if(digitalRead(9) == LOW) {
+     isRunning = !isRunning;
+  }
+  delay(100);
+  
 }
