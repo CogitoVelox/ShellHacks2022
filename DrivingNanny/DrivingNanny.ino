@@ -211,6 +211,7 @@ void loop(void)
     /* Buzz */
     tone(buzzer, 2000);
     delay(1000);
+    noTone(buzzer);
   }
 
   /* Display the results (acceleration is measured in m/s^2) */
@@ -266,6 +267,7 @@ void loop(void)
      while(digitalRead(9) == HIGH)
      {
        delay(100);
+       m=0;
      }
   }
 
