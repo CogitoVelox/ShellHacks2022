@@ -142,7 +142,6 @@ void setup(void)
   
   pinMode(9, INPUT);
   digitalWrite(9, HIGH);
-
   
   while (!Serial);
   Serial.println("Accelerometer Test"); Serial.println("");
@@ -169,6 +168,7 @@ void setup(void)
   accel.getEvent(&event);
   
   /* Set idle acceleration parameters */
+  delay(1000);
   InitAccelX = event.acceleration.x;
   InitAccelY = event.acceleration.y;
   InitAccelZ = event.acceleration.z;
