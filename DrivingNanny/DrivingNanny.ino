@@ -42,7 +42,9 @@ int m=0;
 int h=0;
 double a = millis();
 double c ;
+double threshold = 9.0;
 bool isRunning = false;
+bool firstBoot = true;
 
 void displayDataRate(void)
 {
@@ -132,6 +134,7 @@ void displayRange(void)
 
 void setup(void)
 {
+  delay(1000);
   lcd.begin(16, 2);
   lcd.clear();
   Serial.begin(115200);
@@ -166,11 +169,6 @@ void setup(void)
   sensors_event_t event;
   accel.getEvent(&event);
   
-  /* Set idle acceleration parameters */
-  delay(1000);
-  InitAccelX = event.acceleration.x;
-  InitAccelY = event.acceleration.y;
-  InitAccelZ = event.acceleration.z;
 
   /* Display some basic information on this sensor */
   accel.printSensorDetails();
@@ -187,27 +185,39 @@ void loop(void)
   
     lcd.clear();
     lcd.print("Press Start");
-
     delay(100);
+    
     if(digitalRead(9) == LOW) {
       while(digitalRead(9) == LOW) {
         delay(100);
       }
       lcd.clear();
+      a = millis();
       isRunning = !isRunning;
-      }
-    
-    a = millis();
+    }
   }
-  
+
+  if(firstBoot) {
+    
+    /* Get a new sensor event */
+    sensors_event_t event;
+    accel.getEvent(&event);
+    
+    /* Set idle acceleration parameters */
+    InitAccelX = event.acceleration.x;
+    InitAccelY = event.acceleration.y;
+    InitAccelZ = event.acceleration.z;
+    firstBoot = false;
+    
+  }
   /* Get a new sensor event */
   sensors_event_t event;
   accel.getEvent(&event);
-
+  
  /* Record a bad driving event */
-  if(event.acceleration.x > (InitAccelX + 9) || event.acceleration.x < (InitAccelX - 9)|| 
-     event.acceleration.y > (InitAccelY + 9) || event.acceleration.y < (InitAccelY - 9)|| 
-     event.acceleration.z > (InitAccelZ + 9) || event.acceleration.z < (InitAccelZ - 9))
+  if(event.acceleration.x > (InitAccelX + threshold) || event.acceleration.x < (InitAccelX - threshold)|| 
+     event.acceleration.y > (InitAccelY + threshold) || event.acceleration.y < (InitAccelY - threshold)|| 
+     event.acceleration.z > (InitAccelZ + threshold) || event.acceleration.z < (InitAccelZ - threshold))
   {
     EEPROM.put(EEPROMADR, (EEPROM.get(EEPROMADR, BadDriverEvents)+1));
     /* Buzz */
