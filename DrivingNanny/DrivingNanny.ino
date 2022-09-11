@@ -5,9 +5,8 @@
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
-#define ADXL343_SCK 13
-#define ADXL343_MISO 12
-#define ADXL343_MOSI 11
+
+
 #define ADXL343_CS 10
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 const int buzzer = 10;
@@ -191,9 +190,12 @@ void loop(void)
 
     delay(100);
     if(digitalRead(9) == LOW) {
+      while(digitalRead(9) == LOW) {
+        delay(100);
+      }
       lcd.clear();
       isRunning = !isRunning;
-    }
+      }
     
     a = millis();
   }
@@ -258,16 +260,21 @@ void loop(void)
   Serial.println(i);
   /*Serial.println("......");*/
 
-  delay(200);
+  delay(100);
   /* Check button */
   if(digitalRead(9) == LOW) {
+     while(digitalRead(9) == LOW){
+      delay(100); 
+     }
      isRunning = !isRunning;
-     delay(200);
      EEPROM.put(EEPROMADR,0);
      while(digitalRead(9) == HIGH)
      {
        delay(100);
        m=0;
+     }
+     while(digitalRead(9) == LOW){
+      delay(100); 
      }
   }
 
